@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<!-- saved from url=(0158)file:///C:/Users/ZHENGC5/AppData/Local/Temp/%7B0356A0E0-DBE6-4F2B-9A0F-7BDBC513FE03%7D/%7B0762D89C-2213-4CF1-8C2F-FEBF97918066%7D/IR_Compare_v9%201%20(1).html -->
+<html lang="zh"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>IR 谱图快速比对 v9</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI","Microsoft YaHei",Arial;background:#f3f5f8;color:#1f2733;font-size:13px}
+header{height:48px;background:#fff;border-bottom:1px solid #e3e7ee;display:flex;align-items:center;padding:0 20px;gap:12px}
+header h1{font-size:16px;margin:0;font-weight:600}header .sub{color:#8a94a6;font-size:12px}
+header .sp{flex:1}
+.btn{border:1px solid #d0d6e0;background:#fff;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px;color:#1f2733}
+.btn:hover{border-color:#2f6fed;color:#2f6fed}.btn.pri{background:#2f6fed;border-color:#2f6fed;color:#fff}
+main{max-width:1400px;margin:16px auto;padding:0 20px}
+.drops{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.drop{background:#fff;border:2px dashed #cdd4df;border-radius:10px;height:64px;display:flex;align-items:center;gap:12px;padding:0 16px;cursor:pointer;transition:.15s}
+.drop:hover,.drop.over{border-color:#2f6fed;background:#f2f6ff}
+.drop.ok{border-style:solid}.drop .dot{width:12px;height:12px;border-radius:50%;flex:none}
+.drop .t{font-weight:600}.drop .f{color:#8a94a6;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drop input{display:none}
+.panel{background:#fff;border:1px solid #e3e7ee;border-radius:10px}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #eef1f5;flex-wrap:wrap}
+#verdict{font-weight:600;padding:4px 12px;border-radius:14px;background:#eef1f5;color:#5b6577}
+#verdict.pass{background:#e4f6ea;color:#17803d}#verdict.fail{background:#fde4e4;color:#c62828}#verdict.warn{background:#fff3d6;color:#a76b00}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:14px;border:1px solid #dfe3ea;cursor:pointer;user-select:none;font-size:12px}
+.chip input{display:none}.chip i{width:10px;height:10px;border-radius:2px}
+.chip.off{opacity:.4;text-decoration:line-through}.chip b{font-weight:600}
+select{border:1px solid #d0d6e0;border-radius:6px;padding:4px 6px;font-size:12px;background:#fff}
+#c1{display:block;width:100%;height:440px}#c2{display:block;width:100%;height:120px;border-top:1px solid #eef1f5}
+.hint{color:#8a94a6;font-size:12px;padding:6px 14px 10px}
+.list{margin-top:12px}
+table{width:100%;border-collapse:collapse}th{font-weight:600;color:#5b6577;background:#f7f9fb;text-align:left}
+td,th{padding:7px 12px;border-bottom:1px solid #eef1f5}tr:hover td{background:#f7f9ff;cursor:pointer}
+.tag{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.seg{display:inline-flex;border:1px solid #d0d6e0;border-radius:6px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:3px 9px;font-size:12px;cursor:pointer;border-right:1px solid #e3e7ee;color:#5b6577}.seg button:last-child{border-right:0}
+.seg button.on{background:#2f6fed;color:#fff}
+.empty{padding:30px;text-align:center;color:#8a94a6}
+#set{position:absolute;right:20px;top:52px;width:300px;background:#fff;border:1px solid #e3e7ee;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:14px;display:none;z-index:9}
+#set label{display:flex;justify-content:space-between;align-items:center;margin:7px 0}#set input[type=number],#set input[type=text]{width:110px;border:1px solid #d0d6e0;border-radius:5px;padding:3px 6px}
+#set h4{margin:0 0 6px;font-size:13px}
+#toast{position:fixed;left:50%;top:60px;transform:translateX(-50%);background:#1f2733;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30}#toast.show{opacity:.92}
+@keyframes fl{0%{box-shadow:0 0 0 0 rgba(47,111,237,.5)}100%{box-shadow:0 0 0 10px rgba(47,111,237,0)}}#verdict.flash{animation:fl .6s}
+#pop{position:absolute;display:none;z-index:10;background:#fff;border:1px solid #e3e7ee;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.15);padding:8px}
+#pop .h{font-weight:600;margin-bottom:6px}
+#dropAll{position:fixed;inset:0;background:rgba(47,111,237,.08);border:3px dashed #2f6fed;display:none;align-items:center;justify-content:center;font-size:20px;color:#2f6fed;z-index:20;pointer-events:none}
+</style></head><body>
+<div id="dropAll">松开以载入谱图（先参比，后样品）</div>
+<header><h1>IR 谱图快速比对</h1><span class="sub">UL 746A Appendix A 规则</span><button class="btn" style="padding:3px 8px" onclick="toggleRule()">ⓘ 判定规则</button><span class="sp"></span>
+<select id="acc" title="附件"><option value="ATR">ATR</option><option value="TR">透射</option></select>
+<input type="hidden" id="mode" value="ENG"><span class="seg" id="modeSeg" title="判定严格度"><button data-m="ENG" class="on">工程筛查</button><button data-m="UL">UL 严格</button></span>
+<button class="btn" onclick="toggleSet()">⚙ 参数</button><button class="btn" onclick="exportPNG()">导出图片</button><button class="btn pri" onclick="report()">生成报告</button></header>
+<div id="set" style="display: none;"><h4>判定参数（留空 = 按模式默认）</h4>
+<label>位移容差 (cm⁻¹)<input type="number" id="shift" placeholder="4"></label>
+<label>强度相对变化 (%)<input type="number" id="rel" placeholder="ENG 30 / UL 20"></label>
+<label>平滑点数<input type="number" id="sg" value="9" step="2"></label>
+<label>排除区<input type="text" id="excl"></label>
+<label>浓度校正 (A2.2)<input type="checkbox" id="conc" checked=""></label></div>
+<div id="rule" style="display:none;position:absolute;right:20px;top:52px;width:560px;background:#fff;border:1px solid #e3e7ee;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:14px 18px;z-index:9;font-size:12px;line-height:1.7">
+<h4 style="margin:0 0 6px;font-size:13px">判定规则</h4>
+<b>预处理</b>：转吸光度 → 各自 rubberband 基线 → 稳健浓度缩放（迭代剔除差异区，A2.2）→ SG 平滑 → <b>分辨率匹配</b>（对较锐一方做高斯卷积，抵消粉末/接触造成的峰宽差）。<br>
+<b>谱带识别</b>：二阶导数谱寻峰，可分辨肩峰与重叠峰。<br>
+<b>新增 / 缺失</b>：一方二阶导有谱带、另一方（分辨率匹配后）该处 &lt;35%，且差谱 ≥ 阈值；或重叠区出现单峰形残差（非展宽三瓣、非位移双瓣）。<br>
+<b>位移</b>：配对谱带中心差 ≥ 4 cm⁻¹（≈ 仪器分辨率），两谱带均显著，差谱呈正负双瓣。<br>
+<b>强度</b>：同一锚点（两谱上包络的局部最低点）测峰高与积分面积，两者同向，取较保守者 ≥ ENG 30% / UL 20%。<br>
+<b>宽带</b>：差谱同号连续 ≥ 120 cm⁻¹，且峰值处残差 ≥ 参比吸收的 60%（排除宽峰展宽翼）。<br>
+<b>阈值</b>：ENG 差谱 ≥ max(6σ, 2.5% 最强峰)；UL ≥ max(5σ, 0.6% 最强峰)，σ 为二阶差分 MAD 噪声。<br>
+<b>结论</b>：有新增/缺失/位移 → 不一致；仅强度/宽带 → 待确认；隐藏类型不影响结论。<br>
+<span style="color:#8a94a6">工程筛查 = 只报目视明显的差异；UL 严格 = 正式比对，弱重叠峰也报出。阈值为工程设定，非 UL 原文数值。</span></div>
+<div id="pop" style="display: none;"></div><div id="toast"></div>
+<main>
+<div class="drops">
+ <label class="drop" id="dA"><span class="dot" style="background:#2f6fed"></span><div style="min-width:0"><div class="t">参比 Reference</div><div class="f" id="nA">拖入或点击选择 .SPA / .CSV / .JDX</div></div><input type="file" id="fA"></label>
+ <label class="drop" id="dB"><span class="dot" style="background:#e5484d"></span><div style="min-width:0"><div class="t">样品 Sample</div><div class="f" id="nB">拖入或点击选择 .SPA / .CSV / .JDX</div></div><input type="file" id="fB"></label>
+</div>
+<div class="panel">
+ <div class="bar"><span id="verdict">等待载入谱图</span><span class="sp" style="flex:1"></span>
+  <label class="chip" data-t="new"><input type="checkbox" class="ty" value="new" checked=""><i style="background:#e5484d"></i>新增 <b id="k_new">0</b></label>
+  <label class="chip" data-t="miss"><input type="checkbox" class="ty" value="miss" checked=""><i style="background:#f08c00"></i>缺失 <b id="k_miss">0</b></label>
+  <label class="chip" data-t="shift"><input type="checkbox" class="ty" value="shift" checked=""><i style="background:#7c5cd6"></i>位移 <b id="k_shift">0</b></label>
+  <label class="chip" data-t="int"><input type="checkbox" class="ty" value="int" checked=""><i style="background:#e6b800"></i>强度 <b id="k_int">0</b></label>
+  <label class="chip off" data-t="ign"><input type="checkbox" class="ty" value="ign"><i style="background:#b0b7c3"></i>忽略 <b id="k_ign">0</b></label>
+ </div>
+ <canvas id="c1" width="1358" height="440"></canvas><canvas id="c2" width="1358" height="119"></canvas>
+ <div class="hint">拖动框选放大 · 双击复位 · 单击谱带修改差异类型 · 单击空白处添加标记</div>
+</div>
+<div class="panel list" id="list"><div class="empty">差异谱带将显示在这里</div></div>
+</main>
+<script>
+/* ===== IR 比对核心算法 v2 ===== */
+function sgSmooth(y,w){const h=(w-1)>>1,den=(4*h*h-1)*(2*h+3)/3,c=[];for(let i=-h;i<=h;i++)c.push((3*h*(h+1)-1-5*i*i)/den);
+ const o=y.slice();for(let i=h;i<y.length-h;i++){let s=0;for(let k=-h;k<=h;k++)s+=c[k+h]*y[i+k];o[i]=s}return o}
+function rubber(x,y){const h=[];for(let i=0;i<x.length;i++){while(h.length>=2){const a=h[h.length-2],b=h[h.length-1];
+ if((x[b]-x[a])*(y[i]-y[a])-(y[b]-y[a])*(x[i]-x[a])<=0)h.pop();else break}h.push(i)}
+ const base=new Array(x.length);for(let k=0;k<h.length-1;k++){const a=h[k],b=h[k+1];for(let i=a;i<=b;i++)base[i]=y[a]+(y[b]-y[a])*(x[i]-x[a])/((x[b]-x[a])||1)}
+ return y.map((v,i)=>v-base[i])}
+function interp(s,g){let j=0;return g.map(v=>{while(j<s.x.length-2&&s.x[j+1]<v)j++;return s.y[j]+(s.y[j+1]-s.y[j])*(v-s.x[j])/(s.x[j+1]-s.x[j])})}
+const inEx=(g,ex)=>ex.some(([a,b])=>g>=a&&g<=b);
+const median=a=>{const s=[...a].sort((p,q)=>p-q);return s.length?s[s.length>>1]:0};
+const madNoise=y=>{const d=[];for(let i=2;i<y.length;i++)d.push(y[i]-2*y[i-1]+y[i-2]);return 1.4826*median(d.map(Math.abs))/Math.sqrt(6)};
+function d2(y,h){const o=new Array(y.length).fill(0);for(let i=h;i<y.length-h;i++)o[i]=-(y[i-h]+y[i+h]-2*y[i])/(h*h);return o}
+/* 局部校正高度：两侧 ±W 内最低点连线为基线（吸光度域） */
+function locH(G,A,i,W){let l=i,r=i;for(let j=i;j>=0&&G[i]-G[j]<=W;j--)if(A[j]<A[l])l=j;for(let j=i;j<G.length&&G[j]-G[i]<=W;j++)if(A[j]<A[r])r=j;
+ const b=A[l]+(A[r]-A[l])*(G[i]-G[l])/((G[r]-G[l])||1);return{h:A[i]-b,l,r}}
+function hAt(G,A,l,r,i){const b=A[l]+(A[r]-A[l])*(G[i]-G[l])/((G[r]-G[l])||1);return A[i]-b}
+const toTh=(A,i,h)=>100*Math.pow(10,-(A[i]-h))-100*Math.pow(10,-A[i]); // 吸光度高度→%T 校正高度
+function bandsD2(G,P,A,tau,ex,W){const o=[];for(let i=2;i<P.length-2;i++){if(P[i]>tau&&P[i]>=P[i-1]&&P[i]>P[i+1]&&P[i]>=P[i-2]&&P[i]>P[i+2]&&!inEx(G[i],ex)){
+  const q=locH(G,A,i,W);o.push({i,x:G[i],p:P[i],h:q.h,l:q.l,r:q.r})}}return o}
+function analyze(Ad,Bd,o){
+ const lo=Math.ceil(Math.max(Ad.x[0],Bd.x[0],o.xmin||0)),hi=Math.floor(Math.min(Ad.x.at(-1),Bd.x.at(-1),o.xmax||1e5));
+ if(hi-lo<200)return{err:"两张谱图波数范围重叠不足"};
+ const G=[];for(let v=lo;v<=hi;v++)G.push(v);const n=G.length,ex=o.ex||[];
+ const toA=(y,s)=>{const mx=Math.max(...y);const isA=o.ytype==="A"||(o.ytype!=="T"&&(s.yu===17||mx<=5));return isA?y:y.map(v=>-Math.log10(Math.max(v,.01)/100))};
+ let aa=rubber(G,toA(interp(Ad,G),Ad)),ab=rubber(G,toA(interp(Bd,G),Bd));
+ const ok=G.map(g=>!inEx(g,ex));
+ // 稳健浓度校正：迭代重加权，剔除残差离群点（避免真实差异带偏缩放）
+ let k=1;if(o.conc!==false){let w=G.map((_,i)=>ok[i]?1:0);for(let it=0;it<6;it++){let nu=0,de=0;aa.forEach((v,i)=>{nu+=w[i]*v*ab[i];de+=w[i]*ab[i]*ab[i]});k=de?nu/de:1;
+   const res=aa.map((v,i)=>ab[i]*k-v),s=1.4826*median(res.filter((_,i)=>ok[i]).map(Math.abs))||1e-6;w=res.map((r,i)=>ok[i]&&Math.abs(r)<4*s+0.05*Math.max(aa[i],0)?1:0)}}
+ ab=ab.map(v=>v*k);
+ const sg=o.sg||9;let SA=sgSmooth(aa,sg),SB=sgSmooth(ab,sg);
+ // 展宽匹配（粉末/接触造成的峰宽差异）：对较锐的一方做高斯卷积，选残差最小的 σ
+ const gconv=(y,s)=>{if(s<=0)return y;const h=Math.ceil(3*s),w=[];let z=0;for(let i=-h;i<=h;i++){const v=Math.exp(-i*i/(2*s*s));w.push(v);z+=v}
+   return y.map((_,i)=>{let a=0,ws=0;for(let k=-h;k<=h;k++){const j=i+k;if(j>=0&&j<y.length){a+=w[k+h]*y[j];ws+=w[k+h]}}return a/ws})};
+ const cost=(P,Q)=>{const r=[];for(let i=0;i<P.length;i+=2)if(ok[i])r.push(Math.abs(P[i]-Q[i]));return median(r)+r.reduce((a,v)=>a+v*v,0)/r.length};
+ let best={c:cost(SA,SB),s:0,who:""};
+ for(const s of[0.8,1.5,2.5,3.5,5,7]){const ca=cost(gconv(SA,s),SB),cb=cost(SA,gconv(SB,s));if(ca<best.c)best={c:ca,s,who:"A"};if(cb<best.c)best={c:cb,s,who:"B"}}
+ const MA=best.who=="A"?gconv(SA,best.s):SA,MB=best.who=="B"?gconv(SB,best.s):SB;
+ const D=MB.map((v,i)=>v-MA[i]),MN=MA.map((v,i)=>Math.max(v,MB[i]));
+ const rows=[],used=new Set(),push=r=>{r.x=Math.round(r.x);rows.push(r)};
+ const mk=(t,i,extra)=>{const q=locH(G,MN,i,W),ha=hAt(G,SA,q.l,q.r,i),hb=hAt(G,SB,q.l,q.r,i);
+  return{t,x:G[i],i,a:G[q.l],b:G[q.r],hA:Math.max(0,toTh(SA,i,Math.max(ha,0))),hB:Math.max(0,toTh(SB,i,Math.max(hb,0))),dA:hb-ha,...extra,get d(){return this.hB-this.hA}}};
+ const sigA=Math.max(madNoise(aa.filter((_,i)=>ok[i])),1e-5),sigB=Math.max(madNoise(ab.filter((_,i)=>ok[i])),1e-5),sig=Math.max(sigA,sigB);
+ const Amax=Math.max(...SA.filter((_,i)=>ok[i])),UL=o.mode==="UL";
+ const thrBand=UL?Math.max(5*sig,0.004*Amax):Math.max(6*sig,0.02*Amax);
+ const thrDiff=UL?Math.max(5*sig,0.006*Amax):Math.max(6*sig,0.025*Amax);
+ const relInt=o.rel||(UL?0.2:0.3), shiftTol=o.shift||4, tol=o.tol||3, W=o.W||40;
+ const h2=3,PA=d2(SA,h2),PB=d2(SB,h2),nP=Math.max(madNoise(PA),madNoise(PB));
+ const tauA=Math.max(6*nP,0.004*Math.max(...PA)),tauB=Math.max(6*nP,0.004*Math.max(...PB));
+ const bA=bandsD2(G,PA,SA,tauA,ex,W).filter(b=>b.h>=thrBand*0.5),bB=bandsD2(G,PB,SB,tauB,ex,W).filter(b=>b.h>=thrBand*0.5);
+ // 配对
+ const pairs=[];bA.forEach((p,ia)=>{let j=-1,bd=1e9;bB.forEach((q,jb)=>{const d=Math.abs(q.x-p.x);if(d<bd){bd=d;j=jb}});if(j>=0&&bd<=12)pairs.push({ia,jb:j,d:bd})});
+ pairs.sort((u,v)=>u.d-v.d);const mA=new Map(),mB=new Map();pairs.forEach(p=>{if(!mA.has(p.ia)&&!mB.has(p.jb)){mA.set(p.ia,p.jb);mB.set(p.jb,p.ia)}});
+ bA.forEach((p,ia)=>{if(!mA.has(ia))return;const q=bB[mA.get(ia)],dx=q.x-p.x;
+  // 位移：两谱带都显著，偏移 ≥ 容差，且残差呈正负双瓣
+  if(Math.abs(dx)>=shiftTol&&Math.min(p.h,q.h)>=thrBand){let lo2=0,hi2=0;for(let i=Math.min(p.i,q.i)-15;i<=Math.max(p.i,q.i)+15;i++){if(i<0||i>=n)continue;lo2=Math.min(lo2,D[i]);hi2=Math.max(hi2,D[i])}
+   if(hi2>=thrDiff*0.6&&-lo2>=thrDiff*0.6){push(mk("shift",p.i,{x:(p.x+q.x)/2,xA:p.x,xB:q.x,note:`${p.x}→${q.x} cm⁻¹（Δ${dx>0?"+":""}${dx}）`}));used.add("A"+ia);used.add("B"+mA.get(ia));return}}
+  // 强度：同一锚点测高，相对与绝对差都显著
+  const qq=locH(G,MN,p.i,W),l=qq.l,r=qq.r,i=p.i,ha=hAt(G,MA,l,r,i),hb=hAt(G,MB,l,r,i);
+  // 面积（展宽不变量）：以 ±半宽 积分，半宽取到最近相邻谱带中点
+  const nb=[...bA,...bB].map(b=>b.x).filter(x=>Math.abs(x-p.x)>3),hw=Math.max(4,Math.min(15,...nb.map(x=>Math.abs(x-p.x)/2)));
+  let arA=0,arB=0;for(let j=0;j<n;j++)if(Math.abs(G[j]-p.x)<=hw){arA+=Math.max(0,hAt(G,MA,l,r,j));arB+=Math.max(0,hAt(G,MB,l,r,j))}
+  const rel=(arB-arA)/(Math.max(arA,arB)||1),mx=Math.max(ha,hb);
+  const relH=(hb-ha)/(mx||1);
+  const relI=Math.abs(rel)<Math.abs(relH)?rel:relH; // 取面积与峰高中较保守者
+  if(Math.sign(rel)===Math.sign(relH)&&Math.abs(relI)>=relInt&&Math.abs(hb-ha)>=thrDiff)push(mk("int",i,{note:`${relI>0?"+":""}${Math.round(relI*100)}%`}));
+  else push(mk("ok",i,{}));used.add("A"+ia);used.add("B"+mA.get(ia))});
+ // 未配对 → 新增/缺失（需残差支持，排除展宽造成的肩峰假象）
+ const QA=d2(MA,h2),QB=d2(MB,h2);
+ const lone=(b,src)=>{const sgn=src=="B"?1:-1;let best=0;for(let i=b.i-4;i<=b.i+4;i++)if(i>=0&&i<n)best=Math.max(best,sgn*D[i]);
+  const Qo=src=="B"?QB:QA,Qx=src=="B"?QA:QB;let po=0,px=0;for(let i=b.i-tol;i<=b.i+tol;i++)if(i>=0&&i<n){po=Math.max(po,Qo[i]);px=Math.max(px,Qx[i])}
+  const other=src=="B"?MA:MB,oh=Math.max(0,hAt(G,other,b.l,b.r,b.i));
+  if(best>=thrDiff&&po>0&&px<0.35*po)return mk(src=="B"?"new":"miss",b.i,{note:oh<thrBand?"另一谱无此谱带":"另一谱仅有重叠吸收（肩峰）"});
+  return null};
+ bA.forEach((b,i)=>{if(!used.has("A"+i)){const r=lone(b,"A");if(r)push(r)}});bB.forEach((b,i)=>{if(!used.has("B"+i)){const r=lone(b,"B");if(r)push(r)}});
+ // —— 通道 2：残差谱扫描，补漏（宽带、未被二阶导检出的差异）——
+ const DS=sgSmooth(D,Math.max(15,sg)),relRes=o.relRes||(UL?0.12:0.18),LM=G.map((_,i)=>{let m=0;for(let j=Math.max(0,i-25);j<=Math.min(n-1,i+25);j++)m=Math.max(m,MA[j],MB[j]);return m});
+ const flag=G.map((g,i)=>ok[i]&&Math.abs(DS[i])>=thrDiff&&Math.abs(DS[i])>=relRes*LM[i]);
+ // 显著点 → 沿同号方向扩展到过零点 → 合并相邻同号段
+ let segs=[];for(let i=0;i<n;i++){if(!flag[i])continue;const sg0=Math.sign(DS[i]);let a=i,b=i;
+  while(a>0&&Math.sign(DS[a-1])===sg0&&ok[a-1])a--;while(b<n-1&&Math.sign(DS[b+1])===sg0&&ok[b+1])b++;
+  segs.push({s:a,e:b,sg:sg0});i=b}
+ segs=segs.reduce((m,g)=>{const l=m.at(-1);if(l&&l.sg===g.sg&&G[g.s]-G[l.e]<=30)l.e=g.e;else m.push(g);return m},[]);
+ segs.forEach(({s,e,sg:sgn0})=>{let pk=s;for(let j=s;j<=e;j++)if(Math.abs(DS[j])>Math.abs(DS[pk]))pk=j;const wd=G[e]-G[s];
+   const covered=rows.some(r=>r.t!="ok"&&((G[pk]>=r.a-3&&G[pk]<=r.b+3)||Math.abs(r.x-G[pk])<=15));
+   // 展宽/位移指纹：紧邻反号残差，且该处两谱都有强吸收
+   const win=Math.min(40,Math.max(30,wd)),D0=Math.abs(DS[pk]);let oL=0,oR=0,oS=0;
+   for(let j=Math.max(0,s-win);j<s;j++){const v=-sgn0*DS[j];oL=Math.max(oL,v);if(Math.min(MA[j],MB[j])>=3*D0)oS=Math.max(oS,v)}
+   for(let j=e+1;j<=Math.min(n-1,e+win);j++){const v=-sgn0*DS[j];oR=Math.max(oR,v);if(Math.min(MA[j],MB[j])>=3*D0)oS=Math.max(oS,v)}
+   // 展宽：中心段两侧都有反号翼；翼段：一侧有更强的反号中心（且两谱都强吸收）
+   const opp=(oL>=0.25*D0&&oR>=0.25*D0&&Math.min(MA[pk],MB[pk])>=2*D0)||oS>=0.6*D0;
+   if(covered||wd<4)return;
+   const base0=sgn0>0?MA[pk]:MB[pk];
+   if(wd<120){ // 窄残差：重叠区新增/缺失吸收（单峰形残差，非展宽三瓣/位移双瓣）
+    if(opp||D0<Math.max(thrDiff,(o.relNarrow||(UL?0.1:0.12))*Math.max(MA[pk],MB[pk])))return;
+    const near=rows.find(r=>Math.abs(r.x-G[pk])<=12);const nt=base0<thrBand*0.5?(sgn0>0?"new":"miss"):"int";
+    const note=`重叠区残差 ${sgn0>0?"+":"−"}${D0.toFixed(3)} A，疑似${sgn0>0?"新增":"缺失"}重叠吸收`;
+    const areaRel=(c,hw)=>{const q=locH(G,MN,c,W);let a1=0,b1=0;for(let j=Math.max(0,c-hw);j<=Math.min(n-1,c+hw);j++){a1+=Math.max(0,hAt(G,MA,q.l,q.r,j));b1+=Math.max(0,hAt(G,MB,q.l,q.r,j))}return(b1-a1)/(Math.max(a1,b1)||1)};
+    if(near){const ar=areaRel(near.i??pk,15);if(near.t=="ok"&&Math.sign(ar)===sgn0&&Math.abs(ar)>=relInt*0.5)Object.assign(near,mk(nt=="int"?"int":nt,pk,{a:G[s],b:G[e],note}))}else push(mk(nt,pk,{a:G[s],b:G[e],note}));return}
+   if(wd>=120&&!opp&&D0>=0.6*Math.max(base0,0)+0*thrDiff)push(mk("int",pk,{a:G[s],b:G[e],broad:true,note:`宽带差异 ${G[e]}–${G[s]} cm⁻¹，样品${sgn0>0?"多":"少"}吸收`}))});
+ // 去重
+ rows.sort((p,q)=>q.x-p.x);const out=[];rows.forEach(r=>{const d=out.find(q=>Math.abs(q.x-r.x)<=4);if(!d)out.push(r);else if(d.t=="ok"&&r.t!="ok")Object.assign(d,r)});
+ const TA=aa.map(v=>100*Math.pow(10,-v)),TB=ab.map(v=>100*Math.pow(10,-v));
+ return{blur:best,G,TA,TB,SA,SB,D,DS,k,sig,thrBand,thrDiff,Amax,rows:out,nA:bA.length,nB:bB.length,tol,thU:o.thU||.3,thK:(o.thK||3)*sig}}
+
+const $=id=>document.getElementById(id);
+const TYPES={new:{n:"新增",c:"#e5484d",bg:"rgba(229,72,77,.16)",r:"A3.1(a)"},miss:{n:"缺失",c:"#f08c00",bg:"rgba(240,140,0,.18)",r:"A3.1(b)"},int:{n:"强度",c:"#c99a00",bg:"rgba(230,184,0,.22)",r:"A3.1(c)"},shift:{n:"位移",c:"#7c5cd6",bg:"rgba(124,92,214,.16)",r:"A3.1(c)"},ign:{n:"忽略",c:"#9aa3b2",bg:"rgba(150,160,175,.15)",r:""},ok:{n:"一致",c:"#17803d",bg:"",r:""}};
+const EXCL={ATR:"2300-2400,1900-2250,400-600",TR:"2300-2400"};$("excl").value=EXCL.ATR;
+let A=null,B=null,R=null,view=null,OV={},MAN=[],popT=null;
+const SHOW=()=>new Set([...document.querySelectorAll('.ty')].filter(c=>c.checked).map(c=>c.value));
+/* ---------- 文件 ---------- */
+function parseSPA(buf){const dv=new DataView(buf);let n=0,x0=0,x1=0,dp=0,yu=0;
+ try{for(let p=304;p<Math.min(buf.byteLength-16,304+16*64);p+=16){const k=dv.getUint8(p);if(k===0)break;
+  if(k===2){const h=dv.getUint32(p+2,true);n=dv.getUint32(h+4,true);yu=dv.getUint8(h+12);x0=dv.getFloat32(h+16,true);x1=dv.getFloat32(h+20,true)}
+  if(k===3)dp=dv.getUint32(p+2,true)}}catch(e){}
+ if(!(n>10&&dp>0&&isFinite(x0))){n=dv.getInt32(564,true);x1=dv.getFloat32(576,true);x0=dv.getFloat32(580,true);dp=0;for(let p=288;p<1000;p+=2)if(dv.getUint16(p,true)===3){dp=dv.getUint16(p+2,true);break}}
+ if(!(n>10&&dp>0&&dp+4*n<=buf.byteLength))throw "无法解析 SPA";
+ const x=[],y=[];for(let i=0;i<n;i++){x.push(x0+(x1-x0)*i/(n-1));y.push(dv.getFloat32(dp+4*i,true))}return{x,y,yu}}
+function parseText(t){let x=[],y=[];
+ if(/##XYDATA/.test(t)){const g=k=>{const m=t.match(new RegExp("##"+k+"=\\s*([-\\d.Ee+]+)"));return m?+m[1]:null};
+  const yf=g("YFACTOR")||1,fx=g("FIRSTX"),lx=g("LASTX"),np=g("NPOINTS"),v=[];
+  t.split(/##XYDATA=.*\n/)[1].split("\n").forEach(l=>{if(l.startsWith("##"))return;const a=l.trim().split(/[\s,]+/).filter(s=>s).map(Number);if(a.length>1)a.slice(1).forEach(q=>v.push(q*yf))});
+  const n=np||v.length;for(let i=0;i<n;i++){x.push(fx+(lx-fx)*i/(n-1));y.push(v[i])}}
+ else t.split(/\r?\n/).forEach(l=>{const a=l.trim().split(/[\s,;\t]+/).map(Number);if(a.length>=2&&isFinite(a[0])&&isFinite(a[1])){x.push(a[0]);y.push(a[1])}});return{x,y}}
+function readFile(f,which){const r=new FileReader();r.onload=()=>{const lab=$(which==="A"?"nA":"nB"),box=$(which==="A"?"dA":"dB");
+ try{let d=/\.spa$/i.test(f.name)?parseSPA(r.result):parseText(new TextDecoder().decode(r.result));if(d.x.length<20)throw "数据点不足";
+  const id=d.x.map((_,i)=>i).sort((a,b)=>d.x[a]-d.x[b]);d={name:f.name,x:id.map(i=>d.x[i]),y:id.map(i=>d.y[i]),yu:d.yu};
+  lab.textContent=f.name;lab.title=f.name;box.classList.add("ok");if(which==="A")A=d;else B=d;
+  if(/ATR/i.test(f.name)){$("acc").value="ATR";$("excl").value=EXCL.ATR}OV={};MAN=[];view=null;run()}
+ catch(e){lab.textContent="✘ "+f.name+"："+e;box.classList.remove("ok")}};r.readAsArrayBuffer(f)}
+["A","B"].forEach(w=>{const box=$("d"+w);$("f"+w).onchange=e=>e.target.files[0]&&readFile(e.target.files[0],w);
+ box.ondragover=e=>{e.preventDefault();e.stopPropagation();box.classList.add("over")};box.ondragleave=()=>box.classList.remove("over");
+ box.ondrop=e=>{e.preventDefault();e.stopPropagation();box.classList.remove("over");$("dropAll").style.display="none";const fs=[...e.dataTransfer.files];
+  if(fs.length>=2){readFile(fs[0],"A");readFile(fs[1],"B")}else if(fs[0])readFile(fs[0],w)}});
+let dc=0;window.addEventListener("dragenter",e=>{dc++;$("dropAll").style.display="flex"});window.addEventListener("dragleave",()=>{if(--dc<=0){dc=0;$("dropAll").style.display="none"}});
+window.addEventListener("dragover",e=>e.preventDefault());
+window.addEventListener("drop",e=>{e.preventDefault();dc=0;$("dropAll").style.display="none";const fs=[...e.dataTransfer.files];
+ if(fs.length>=2){readFile(fs[0],"A");readFile(fs[1],"B")}else if(fs[0])readFile(fs[0],!A?"A":"B")});
+/* ---------- 计算 ---------- */
+const rng=s=>s.split(",").map(p=>p.split("-").map(Number)).filter(p=>p.length==2&&p.every(isFinite)).map(([a,b])=>[Math.min(a,b),Math.max(a,b)]);
+const opts=()=>({ytype:"auto",ex:rng($("excl").value),conc:$("conc").checked,mode:$("mode").value,sg:Math.max(3,(+$("sg").value)|1),
+ shift:+$("shift").value||undefined,rel:$("rel").value?+$("rel").value/100:undefined});
+function manualRow(x){const G=R.G;let i=G.findIndex(g=>g>=x);if(i<0)i=G.length-1;let bi=i;
+ for(let j=Math.max(0,i-5);j<=Math.min(G.length-1,i+5);j++)if(Math.max(R.SA[j],R.SB[j])>Math.max(R.SA[bi],R.SB[bi]))bi=j;
+ const MX=R.SA.map((v,k)=>Math.max(v,R.SB[k])),q=locH(G,MX,bi,40),ha=Math.max(0,hAt(G,R.SA,q.l,q.r,bi)),hb=Math.max(0,hAt(G,R.SB,q.l,q.r,bi));
+ const hA=toTh(R.SA,bi,ha),hB=toTh(R.SB,bi,hb);return{x:G[bi],i:bi,a:G[q.l],b:G[q.r],hA,hB,d:hB-hA,t:"ok",note:"人工添加",manual:true}}
+function run(){R=null;if(A&&B){const r=analyze(A,B,opts());if(r.err){setV("✘ "+r.err,"fail");draw();return}R=r;
+ MAN.forEach(m=>{if(!R.rows.some(q=>Math.abs(q.x-m)<=3))R.rows.push(manualRow(m))});R.rows.sort((p,q)=>q.x-p.x);
+ if(!view)view=[R.G[0],R.G.at(-1)]}evaluate()}
+function setV(t,c){const v=$("verdict");v.textContent=t;v.className=c||""}
+function evaluate(){if(!R){draw();return}
+ R.rows.forEach(r=>{r.auto=r.t;r.cls=OV[r.x]||r.auto});
+ const SH=SHOW(),cnt=t=>R.rows.filter(r=>r.cls==t).length;["new","miss","shift","int","ign"].forEach(t=>$("k_"+t).textContent=cnt(t));
+ document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("off",!c.querySelector("input").checked));
+ const nm=cnt("new")+cnt("miss"),ns=cnt("shift"),ni=cnt("int");
+ if(nm||ns)setV(`✘ 不一致 · ${[nm?nm+" 条新增/缺失":"",ns?ns+" 处位移":"",ni?ni+" 处强度":""].filter(Boolean).join("，")}`,"fail");
+ else if(ni)setV(`⚠ 待确认 · ${ni} 处强度/宽带差异`,"warn");else setV("✔ 一致","pass");
+ const hidden=["new","miss","shift","int"].filter(t=>!SH.has(t)&&cnt(t));if(hidden.length)$("verdict").textContent+=`（列表已隐藏：${hidden.map(t=>TYPES[t].n).join("、")}）`;
+ $("verdict").textContent+=`　[${$("mode").value=="UL"?"UL 严格":"工程筛查"}]`;R.verdict=$("verdict").textContent;
+ const key=R.rows.filter(r=>SH.has(r.cls));
+ $("list").innerHTML=key.length?`<table><tr><th style="width:110px">波数 cm⁻¹</th><th>参比 %T</th><th>样品 %T</th><th>Δ %T</th><th>说明</th><th>差异类型</th><th style="width:70px"></th></tr>`+
+  key.map(r=>`<tr onclick="if(event.target.tagName!='BUTTON')zoom(${r.x})"><td><span class="tag" style="background:${TYPES[r.cls].c}"></span>${r.x}${r.manual||OV[r.x]?" *":""}</td><td>${r.hA.toFixed(2)}</td><td>${r.hB.toFixed(2)}</td><td>${(r.d>0?"+":"")+r.d.toFixed(2)}</td><td style="color:#5b6577;font-size:12px">${r.note||""}</td>
+  <td><span class="seg">${["new","miss","shift","int","ign"].map(t=>`<button class="${r.cls==t?"on":""}" onclick="setT(${r.x},'${t}')">${TYPES[t].n}</button>`).join("")}</span></td>
+  <td>${r.manual?`<button class="btn" onclick="setT(${r.x},'del')">删除</button>`:OV[r.x]?`<button class="btn" onclick="setT(${r.x},'auto')">还原</button>`:""}</td></tr>`).join("")+"</table>"
+  :`<div class="empty">没有${SH.size<4?"所选类型的":""}差异谱带</div>`;
+ draw()}
+function setT(x,t,g){$("pop").style.display="none";
+ if(x==null){const r=manualRow(g);x=r.x;if(!R.rows.some(q=>q.x===x)){R.rows.push(r);R.rows.sort((p,q)=>q.x-p.x);MAN.push(x)}}
+ if(t=="del"){MAN=MAN.filter(m=>m!==x);R.rows=R.rows.filter(r=>r.x!==x);delete OV[x]}
+ else if(t=="auto")delete OV[x];else{const r=R.rows.find(q=>q.x===x);if(r&&r.auto===t)delete OV[x];else OV[x]=t;
+  const cb=document.querySelector(`.ty[value=${t}]`);if(cb&&!cb.checked)cb.checked=true}
+ evaluate()}
+function zoom(x){view=[Math.max(R.G[0],x-90),Math.min(R.G.at(-1),x+90)];draw();window.scrollTo({top:0,behavior:"smooth"})}
+/* ---------- 绘图 ---------- */
+function draw(){plot($("c1"),false);plot($("c2"),true)}
+function plot(c,diff){const dpr=window.devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;c.width=W*dpr;c.height=H*dpr;
+ const ctx=c.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+ if(!R){if(!diff){ctx.fillStyle="#b0b7c3";ctx.font="14px Microsoft YaHei";ctx.textAlign="center";ctx.fillText("拖入两张谱图开始比对",W/2,H/2)}return}
+ const m={l:52,r:16,t:diff?8:30,b:diff?22:24},[x0,x1]=view,idx=R.G.map((_,i)=>i).filter(i=>R.G[i]>=x0&&R.G[i]<=x1),pw=W-m.l-m.r;
+ const d=R.DS,S=diff?[[d,"#7c5cd6"]]:[[R.TA,"#2f6fed"],[R.TB,"#e5484d"]];
+ let lo=1e9,hi=-1e9;S.forEach(s=>idx.forEach(i=>{lo=Math.min(lo,s[0][i]);hi=Math.max(hi,s[0][i])}));
+ if(diff){const a=Math.max(Math.abs(lo),Math.abs(hi),R.thrDiff*2);lo=-a;hi=a}else{const p=(hi-lo)*.05;lo-=p;hi+=p}
+ const X=g=>m.l+(x1-g)/(x1-x0)*pw,Y=v=>m.t+(hi-v)/(hi-lo||1)*(H-m.t-m.b);
+ ctx.font="11px Segoe UI,Arial";ctx.textAlign="left";
+ rng($("excl").value).forEach(([a,b])=>{if(b<x0||a>x1)return;const p=X(Math.min(b,x1)),q=X(Math.max(a,x0));ctx.fillStyle="#f4f5f7";ctx.fillRect(p,m.t,q-p,H-m.t-m.b)});
+ const SH=SHOW(),vis=R.rows.filter(r=>SH.has(r.cls)&&r.cls!="ok"&&r.x>=x0&&r.x<=x1);
+ vis.forEach(r=>{const a=Math.max(r.x-Math.min(r.x-r.a,22),x0),b=Math.min(r.x+Math.min(r.b-r.x,22),x1);ctx.fillStyle=TYPES[r.cls].bg;ctx.fillRect(X(b),m.t,Math.max(X(a)-X(b),3),H-m.t-m.b)});
+ ctx.strokeStyle="#eef1f5";ctx.fillStyle="#8a94a6";ctx.lineWidth=1;
+ const step=[2000,1000,500,200,100,50,20,10,5].reverse().find(s=>(x1-x0)/s<=10)||500;
+ for(let g=Math.ceil(x0/step)*step;g<=x1;g+=step){ctx.beginPath();ctx.moveTo(X(g),m.t);ctx.lineTo(X(g),H-m.b);ctx.stroke();ctx.textAlign="center";ctx.fillText(g,X(g),H-6)}
+ ctx.textAlign="right";for(let q=0;q<=4;q++){const v=lo+(hi-lo)*q/4;ctx.fillText(v.toFixed(diff?3:0),m.l-6,Y(v)+4)}
+ ctx.save();ctx.translate(14,(m.t+H-m.b)/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.fillText(diff?"ΔA":"%T",0,0);ctx.restore();
+ if(diff){ctx.fillStyle="rgba(150,160,175,.15)";ctx.fillRect(m.l,Y(R.thrDiff),pw,Y(-R.thrDiff)-Y(R.thrDiff));ctx.strokeStyle="#c5cbd6";ctx.beginPath();ctx.moveTo(m.l,Y(0));ctx.lineTo(W-m.r,Y(0));ctx.stroke()}
+ S.forEach(s=>{ctx.strokeStyle=s[1];ctx.lineWidth=1.4;ctx.beginPath();idx.forEach((i,n)=>{const p=[X(R.G[i]),Y(s[0][i])];n?ctx.lineTo(...p):ctx.moveTo(...p)});ctx.stroke()});
+ if(!diff){ // 图例
+  ctx.textAlign="left";ctx.font="12px Segoe UI,Microsoft YaHei";let lx=m.l;
+  [[R.TA,"#2f6fed",A.name],[R.TB,"#e5484d",B.name]].forEach(([_,col,nm])=>{ctx.fillStyle=col;ctx.fillRect(lx,10,14,3);ctx.fillStyle="#5b6577";const t=nm.replace(/\.\w+$/,"");ctx.fillText(t,lx+20,15);lx+=ctx.measureText(t).width+44});
+  // 标签：不重叠
+  ctx.font="bold 11px Segoe UI,Arial";ctx.textAlign="center";const placed=[];
+  vis.sort((a,b)=>b.x-a.x).forEach(r=>{const px=X(r.x),w=ctx.measureText(r.x).width+8;let row=0;while(placed.some(p=>p.row==row&&Math.abs(p.x-px)<(p.w+w)/2))row++;
+   placed.push({x:px,w,row});const y=m.t+12+row*14;ctx.fillStyle=TYPES[r.cls].c;ctx.fillText(r.x,px,y)})}
+ let s0=null;c.onmousedown=e=>s0=e.offsetX;
+ c.onmouseup=e=>{if(s0==null)return;const inv=px=>x1-(px-m.l)/pw*(x1-x0),dx=Math.abs(e.offsetX-s0);
+  if(dx>8){const a=inv(s0),b=inv(e.offsetX);view=[Math.min(a,b),Math.max(a,b)];draw()}
+  else if(!diff){const g=inv(e.offsetX),px=e.pageX,py=e.pageY;let best=null,bd=1e9;
+   R.rows.forEach(r=>{const dd=Math.abs(X(r.x)-e.offsetX);if(dd<=12&&dd<bd){bd=dd;best=r}});
+   clearTimeout(popT);popT=setTimeout(()=>showPop(px,py,best,g),230)}s0=null};
+ c.ondblclick=()=>{clearTimeout(popT);$("pop").style.display="none";view=[R.G[0],R.G.at(-1)];draw()}}
+function showPop(px,py,r,g){const p=$("pop"),x=r?r.x:"null";
+ p.innerHTML=`<div class="h">${r?r.x:Math.round(g)} cm⁻¹${r?"":"　添加标记"}</div><span class="seg">${["new","miss","shift","int","ign"].map(t=>`<button class="${r&&r.cls==t?"on":""}" onclick="setT(${x},'${t}',${g})">${TYPES[t].n}</button>`).join("")}</span>`+
+  (r&&r.manual?` <button class="btn" onclick="setT(${x},'del')">删除</button>`:"");
+ p.style.left=Math.min(px,innerWidth-300)+"px";p.style.top=py+10+"px";p.style.display="block"}
+document.addEventListener("mousedown",e=>{if(!$("pop").contains(e.target)&&e.target.id!="c1")$("pop").style.display="none";
+ if(!$("set").contains(e.target)&&!$("rule").contains(e.target)&&!e.target.closest("header")){$("set").style.display="none";$("rule").style.display="none"}});
+function toggleRule(){const s=$("rule");s.style.display=s.style.display=="block"?"none":"block";$("set").style.display="none"}
+function toggleSet(){$("rule").style.display="none";const s=$("set");s.style.display=s.style.display=="block"?"none":"block"}
+/* ---------- 导出 ---------- */
+function snap(){const sv=view;view=[R.G[0],R.G.at(-1)];draw();const a=$("c1"),b=$("c2"),c=document.createElement("canvas");c.width=a.width;c.height=a.height+b.height;
+ const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(a,0,0);x.drawImage(b,0,a.height);view=sv;draw();return c.toDataURL("image/png")}
+function exportPNG(){if(!R)return;const a=document.createElement("a");a.href=snap();a.download="IR_compare.png";a.click()}
+function report(){if(!R)return alert("请先载入两张谱图");const key=R.rows.filter(r=>r.cls!="ok"&&r.cls!="ign"),img=snap();
+ const w=window.open("","_blank");w.document.write(`<html><head><meta charset="utf-8"><title>IR 比对报告</title><style>body{font-family:"Segoe UI","Microsoft YaHei";margin:32px;color:#1f2733;font-size:12px}h1{font-size:18px;margin:0 0 4px}.m{color:#8a94a6}img{width:100%;border:1px solid #e3e7ee;margin:12px 0}table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #e3e7ee;padding:5px 8px;text-align:left}th{background:#f7f9fb}.v{font-size:15px;font-weight:600;margin:12px 0}</style></head><body>
+<h1>红外谱图比对报告</h1><div class="m">${new Date().toLocaleString()} · 依据 UL 746A Appendix A · ${$("acc").value} · ${$("mode").value=="UL"?"UL 严格":"工程筛查"}</div>
+<p>参比：${A.name}<br>样品：${B.name}</p><div class="v">结论：${R.verdict}</div><img src="${img}">
+${key.length?`<table><tr><th>波数 cm⁻¹</th><th>参比 %T</th><th>样品 %T</th><th>Δ %T</th><th>类型</th><th>说明</th><th>条款</th></tr>${key.map(r=>`<tr><td>${r.x}${r.manual||OV[r.x]?" *":""}</td><td>${r.hA.toFixed(2)}</td><td>${r.hB.toFixed(2)}</td><td>${r.d.toFixed(2)}</td><td>${TYPES[r.cls].n}</td><td>${r.note||""}</td><td>${TYPES[r.cls].r}</td></tr>`).join("")}</table><p class="m">* 人工判定</p>`:"<p>无差异谱带。</p>"}
+<p style="margin-top:30px">工程师确认：______________　日期：__________</p></body></html>`);w.document.close()}
+/* ---------- 事件 ---------- */
+document.querySelectorAll(".ty").forEach(c=>c.addEventListener("change",evaluate));
+let tT=null;function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(tT);tT=setTimeout(()=>e.classList.remove("show"),1800)}
+function setMode(m){if($("mode").value===m)return;$("mode").value=m;
+ document.querySelectorAll("#modeSeg button").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
+ const prev=R?R.rows.filter(r=>r.cls!="ok"&&r.cls!="ign").length:null;run();
+ if(R){const now=R.rows.filter(r=>r.cls!="ok"&&r.cls!="ign").length;
+  toast(`${m=="UL"?"UL 严格":"工程筛查"} · 差异 ${prev}→${now}`);
+  const v=$("verdict");v.classList.remove("flash");void v.offsetWidth;v.classList.add("flash")}
+ else toast("已切换为"+(m=="UL"?"UL 严格":"工程筛查"))}
+document.querySelectorAll("#modeSeg button").forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+$("acc").onchange=()=>{$("excl").value=EXCL[$("acc").value];run()};
+["shift","rel","sg","excl","conc"].forEach(id=>$(id).addEventListener("change",run));
+window.onresize=draw;document.addEventListener("keydown",e=>{if(e.key=="Escape"){$("pop").style.display="none";$("set").style.display="none"}});draw();
+</script>
+</body></html>
